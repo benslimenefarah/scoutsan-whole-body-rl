@@ -1,0 +1,88 @@
+{
+  "summary": {
+    "model": "/home/nyctophilia/UnityProjects/RL_Scoutsan/python/model_bearing_angle_FLU_new/ppo_bearing_angle_FLU_new_interrupted.zip",
+    "date": "2026-09-24",
+    "success_gate_m": 0.6,
+    "episodes": 6,
+    "successes": 6,
+    "success_rate": 1.0,
+    "mean_decisions_to_reach": 56.7,
+    "median_decisions_to_reach": 48.5,
+    "mean_steps_all": 56.8,
+    "mean_min_d": 0.5286,
+    "mean_final_d": 0.5286,
+    "end_reasons": {
+      "SUCCESS": 6,
+      "FALL": 0,
+      "TIMEOUT": 0
+    }
+  },
+  "episodes": [
+    {
+      "episode": 1,
+      "agent": 0,
+      "steps": 41,
+      "end": "SUCCESS",
+      "reached": true,
+      "decisions_to_reach": 41,
+      "min_d": 0.5688,
+      "final_d": 0.5688,
+      "mean_abs_bearing_rad": 2.7304
+    },
+    {
+      "episode": 2,
+      "agent": 0,
+      "steps": 50,
+      "end": "SUCCESS",
+      "reached": true,
+      "decisions_to_reach": 50,
+      "min_d": 0.5438,
+      "final_d": 0.5438,
+      "mean_abs_bearing_rad": 0.7344
+    },
+    {
+      "episode": 3,
+      "agent": 0,
+      "steps": 97,
+      "end": "SUCCESS",
+      "reached": true,
+      "decisions_to_reach": 97,
+      "min_d": 0.5179,
+      "final_d": 0.5179,
+      "mean_abs_bearing_rad": 2.239
+    },
+    {
+      "episode": 4,
+      "agent": 0,
+      "steps": 64,
+      "end": "SUCCESS",
+      "reached": true,
+      "decisions_to_reach": 63,
+      "min_d": 0.5056,
+      "final_d": 0.5056,
+      "mean_abs_bearing_rad": 2.7977
+    },
+    {
+      "episode": 5,
+      "agent": 0,
+      "steps": 47,
+      "end": "SUCCESS",
+      "reached": true,
+      "decisions_to_reach": 47,
+      "min_d": 0.5263,
+      "final_d": 0.5263,
+      "mean_abs_bearing_rad": 2.9398
+    },
+    {
+      "episode": 6,
+      "agent": 0,
+      "steps": 42,
+      "end": "SUCCESS",
+      "reached": true,
+      "decisions_to_reach": 42,
+      "min_d": 0.5091,
+      "final_d": 0.5091,
+      "mean_abs_bearing_rad": 0.2346
+    }
+  ]
+}

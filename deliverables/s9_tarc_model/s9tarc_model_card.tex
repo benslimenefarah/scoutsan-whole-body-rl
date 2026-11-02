@@ -1,0 +1,54 @@
+\documentclass[11pt]{article}
+\usepackage[margin=2.2cm]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{array}
+\setlength{\parindent}{0pt}\setlength{\parskip}{5pt}
+\newcommand{\code}[1]{\texttt{#1}}
+\title{\vspace{-1.5em}s9\_tarc --- Model Card\\[2pt]\large End-to-end DRL whole-body control, \emph{confondu} on the T-arc target curriculum}
+\author{RL\_Scoutsan project}\date{2026-09-25}
+\begin{document}\maketitle\vspace{-1em}
+\section{Task and robot}
+A Scout~V2 mobile base carrying a 6-DOF Doosan arm must bring its gripper frame \emph{confondu} (coincident in position AND orientation) with a target frame. Unlike the Path~B models, this policy is \textbf{end-to-end}: it outputs joint and base velocities directly --- there is no analytic inverse-kinematics controller in the loop. It is warm-started from \code{s9\_np} (the same agent trained on one fixed target) and retrained on the T-arc target curriculum, so that it faces the same target distribution as the WDLS models and can be compared with them.
+\section{Observations (14) and actions (8)}
+Observations, in the \code{base\_link} FLU frame: [0:3] gripper position, [3:7] gripper quaternion, [7:10] target position, [10:14] target quaternion (quaternions canonicalised $w>0$). Actions: 6 joint increments ($\pm$3\textdegree{} per decision, shrunk near the goal by the adaptive action scale) plus the base linear and angular velocity commands. One decision every 5 physics steps = 0.1~s.
+\section{Target curriculum (T-arc)}
+The target is placed on an on-axis LINE that grows from \code{minRadius} 0.75~m to \code{lineRadius} 2.0~m over the first 500\,000 Academy steps, then on an ARC at 2.0~m opening to $\pm$20\textdegree{} (\code{arcTotalDeg} 40) over the next 1\,000\,000 steps; height 0.25~m above the base, target frame $+Z$ pointing away from the robot (\code{zAwayFromRobot}). The evaluation cycles the deterministic \code{SampleLineArc} set: 3 distinct targets (on-axis, arc $-$20\textdegree, arc $+$20\textdegree) at 2.0~m --- the same set the wb\_1am regimes were evaluated on.
+\section{Physics, gate, checkpoint}
+\begin{center}\begin{tabular}{ll}
+\hline item & value\\\hline
+joint step / velocity cap & 3\textdegree{} per decision; \code{maxJointVelocityDeg} 30\\
+base caps & \code{maxLinearVel} 0.3 m/s, \code{maxAngularVel} 0.4 rad/s\\
+wheel cap & \code{maxWheelVelocityDeg} 150\\
+gate (scene Inspector) & $d<0.02$ m AND $\varphi<0.02$ rad (1.15\textdegree), no hold\\
+episode end & the gate ends the episode immediately (no settle-hold is measurable)\\
+checkpoint & \code{ppo\_scoutsan\_s9\_tarc.zip}\\
+training & 4.0M steps, 8 robots, warm start from \code{s9\_np}, port 5025\\
+obs / act & 14 / 8 (continuous)\\
+\hline\end{tabular}\end{center}
+\section{Evaluation --- line+arc sweep (5 passes, deterministic policy)}
+\begin{center}\begin{tabular}{cccccccc}
+\hline
+pass & target & dist (m) & az (\textdegree) & steps$\to$gate & s$\to$gate & min $d$ (mm) & min $\varphi$ (\textdegree)\\
+\hline
+{[0]} & arc- & 1.74 & -157 & 87 & 8.7 & 12.4 & 0.62\\
+{[1]} & axis & 1.71 & +180 & 29 & 2.9 & 12.2 & 0.31\\
+{[2]} & arc+ & 1.73 & +157 & 150 & 15.0 & 11.7 & 0.57\\
+{[3]} & axis & 1.71 & +180 & 27 & 2.7 & 14.2 & 0.04\\
+{[4]} & arc- & 1.73 & -157 & 124 & 12.4 & 15.7 & 0.40\\
+\hline\end{tabular}\end{center}
+The distance and azimuth columns are measured from \code{base\_link}, which sits about 0.3~m ahead of the spawn centre, so they read below the curriculum's 2.0~m / $\pm$20\textdegree{} nominal values; the true geometry is identical for every model evaluated here.
+
+Summary: reached 100\%, mean min $d$ 13.2~mm, mean min $\varphi$ 0.39\textdegree, mean 83 decisions (8.3~s) to the gate. Figures and speaker notes in \code{figures/}; per-step trace (including the full gripper and target pose) in \code{s9tarc\_eval\_steps.csv}.
+\section*{Reproducibility}
+\small\begin{tabular}{ll}
+Model dir & \code{scoutsan\_Baseline/models/model\_scoutsan\_s9\_tarc}\\
+Model prefix & \code{ppo\_scoutsan\_s9\_tarc}\\
+Trainer & \code{scoutsan\_Baseline/training/train\_scoutsan\_s9\_tarc.py}\\
+Scene & \code{scoutsan\_Baseline/scenes/s9.unity}\\
+Scene switches & \code{useTArcCurriculum} 1, \code{tArcLineArc} 1 (count 4 / lineN 1)\\
+Eval & \code{eval\_s9tarc.py} (Editor, 5004) $\to$ \code{s9tarc\_plots.py} $\to$ \code{s9tarc\_notes.py}\\
+Video & 3 cams (FollowCam/upcam/sidecam) + FrameAxesRenderer triads\\
+Env & \code{unity-rl-gpu} (SB3 2.3.2, mlagents\_envs 0.30.0)\\
+Date & 2026-09-25\\
+\end{tabular}\normalsize
+\end{document}

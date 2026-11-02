@@ -1,0 +1,117 @@
+\documentclass[11pt]{article}
+\usepackage[margin=2.2cm]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{array}
+\usepackage{listings}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{5pt}
+\newcommand{\code}[1]{\texttt{#1}}
+
+\title{\vspace{-1.5em}s9\_np --- Model Card\\[2pt]
+\large Direct-velocity whole-body: reach a fixed target in \emph{confondu}}
+\author{RL\_Scoutsan project}
+\date{2026-09-24}
+
+\begin{document}
+\maketitle
+\vspace{-1em}
+
+\section{Task and robot}
+A Scout~V2 mobile base with a 6-DOF Doosan arm must bring its \emph{gripper frame} coincident
+(\emph{confondu} --- position AND orientation) with a \textbf{fixed} target frame. This is the
+direct-velocity baseline (agent \code{ScoutsanV1\_1b}): the policy commands base and joint
+velocities \emph{directly}, in contrast to the WDLS/Path~B model that emits WDLS weights. This run
+(\code{s9\_np}) is re-based onto the wb Path~B physics so it can be compared to the WDLS models on
+matched dynamics. The target is a single fixed pose (no randomization); a whole-body-transplant
+warm start (padded ARM 14/6 $\to$ 14/8) seeds the arm skill while the grippy 4-wheel drive is
+learned fresh.
+
+\section{Observations (14), base\_link frame}
+\begin{center}
+\begin{tabular}{cll}
+\hline
+slice & symbol & meaning\\
+\hline
+{[0:3]}  & gripper pos  & gripper (mid-fingers + tip offset) position\\
+{[3:7]}  & gripper quat & gripper frame orientation (w-positive)\\
+{[7:10]} & target pos   & target position\\
+{[10:14]}& target quat  & target frame orientation (w-positive)\\
+\hline
+\end{tabular}
+\end{center}
+Errors: $d=\lVert p_G-p_T\rVert$ (reach), $\varphi=2\arccos\lvert\langle q_G,q_T\rangle\rvert$
+(geodesic orientation), baseD $=\lVert p_T\rVert$ in base frame (how far the base is from target).
+
+\section{Actions (8) --- direct velocity}
+Six arm-joint velocity commands (deltas clamped to one \code{maxJointVelocityDeg} step per decision,
+cap 30\,\textdegree/s) plus base $v,\omega$ (scaled by \code{maxLinearVel}=0.3, \code{maxAngularVel}=0.4).
+Base $\to$ wheels by differential drive (wheelRadius 0.16459, wheelSeparation 0.58306), each wheel's
+commanded velocity clamped to \code{maxWheelVelocityDeg}=150\,\textdegree/s (wb-matched). The base
+drive + clamps are identical to the WDLS agents; only the \emph{source} of $v,\omega$ differs
+(direct policy vs WDLS solve).
+
+\section{Reward and gate}
+Per step: a progress term $r_1$, orientation/position shaping, directional ($\pm$) terms that are
+\emph{zeroed inside the gate} (deadbands, so stillness at the goal is optimal), and a rate penalty
+$r_8$; a one-time \textbf{+100} bonus on success. Exact constants/equations: the s9 stage report.
+\begin{center}
+\begin{tabular}{lll}
+\hline
+event & condition & reward\\
+\hline
+SUCCESS & $d<\code{successRadius}=0.03$ m \textbf{and} $\varphi<\code{orientToleranceRad}=0.05$ rad & $+100$, end\\
+FAIL    & collision/fall (early exit) & penalty, end\\
+TIMEOUT & step cap reached & shaping only\\
+\hline
+\end{tabular}
+\end{center}
+
+\section{Physics and model configuration}
+\begin{center}
+\begin{tabular}{ll}
+\hline
+item & value\\
+\hline
+Algorithm & PPO (Stable-Baselines3 2.3.2), \code{MlpPolicy}\\
+Warm start & padded ARM transplant 14/6 $\to$ 14/8 (arm kept, base rows zeroed)\\
+base caps & \code{maxLinearVel} 0.3, \code{maxAngularVel} 0.4 (wb-matched)\\
+wheel cap / drive & \code{maxWheelVelocityDeg} 150; force 100 / damping 5000\\
+arm cap & \code{maxJointVelocityDeg} 30\,\textdegree/s\\
+obs / act & 14 / 8 (continuous)\\
+target & fixed (randomize position/orientation OFF)\\
+\hline
+\end{tabular}
+\end{center}
+
+\section{Evaluation (deterministic, gate 0.03 m / 0.05 rad)}
+From \code{eval\_s9np.py} (5 episodes, \code{deterministic=True}); per-step trace in
+\code{s9np\_eval\_steps.csv}, summary in \code{s9np\_eval.json}, figures in \code{figures/}.
+\begin{center}
+\begin{tabular}{ll}
+\hline
+metric & value\\
+\hline
+Episodes & 5\\
+Success & 5/5 = 100\%\\
+Mean min distance & 0.026 m\\
+Mean min orientation error & 1.35\textdegree{} (0.0236 rad)\\
+Decisions to reach the gate & $\approx$26\\
+End reasons (SUCCESS / FAIL / TIMEOUT) & 5 / 0 / 0\\
+\hline
+\end{tabular}
+\end{center}
+The fixed target makes the run deterministic --- the 5 trajectories overlap (a reproducibility
+check). Orientation reaches confondu ($<2.9$\textdegree) by $\sim$step 13, then holds while the
+base finishes driving in; the base closes to $\sim$1.05 m and the arm does the fine reach.
+
+\section*{Reproducibility}
+\begin{tabular}{ll}
+Model dir / prefix & \code{scoutsan\_Baseline/models/model\_scoutsan\_s9\_np} / \code{ppo\_scoutsan\_s9\_np}\\
+Scene & the s9 scene in the s9\_np FIXED config (Behavior Default, 14/8, randomize OFF)\\
+Eval / plots & \code{eval\_s9np.py} $\to$ \code{eval\_s9np\_plots.py} $\to$ \code{build\_s9np\_figure\_notes.py}\\
+Video & 3 cams (FollowCam/upcam/sidecam) + FrameAxesRenderer $\to$ \code{make\_s9np\_videos.sh}\\
+Env & \code{unity-rl-gpu} (SB3 2.3.2, mlagents\_envs 0.30.0), Editor port 5004\\
+Date & 2026-09-24\\
+\end{tabular}
+
+\end{document}

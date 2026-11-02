@@ -1,0 +1,259 @@
+<?xml version="1.0"?>
+
+<robot name="a0509mobile" xmlns:xacro="http://www.ros.org/wiki/xacro">
+	<!--<xacro:include filename="$(find dsr_description)/config/macro.decorations.xacro" />-->
+	<xacro:include filename="$(find dsr_description)/xacro/scout_wheel_type1.xacro" />
+	<xacro:include filename="$(find dsr_description)/xacro/scout_wheel_type2.xacro" />
+	<xacro:include filename="$(find dsr_description)/xacro/macro.a0509.blue.xacro" />
+	<xacro:property name="M_PI" value="3.14159" />
+	<!-- Base Size -->
+    <xacro:property name="base_x_size" value="0.9250000" />
+    <xacro:property name="base_y_size" value="0.380000" />
+    <xacro:property name="base_z_size" value="0.210000" />
+	<!-- Wheel Mounting Positions -->
+    <xacro:property name="wheelbase" value="0.498" />
+    <xacro:property name="track" value="0.58306" />
+    <xacro:property name="wheel_vertical_offset" value="-0.0702" />
+	<!-- Wheel Properties -->
+    <xacro:property name="wheel_length" value="1.1653e-01" />
+    <xacro:property name="wheel_radius" value="1.6459e-01" />
+	<xacro:macro name="a0509mobile" params="namespace">
+
+		<!-- Base link is the center of the robot's bottom plate -->
+		<link name="base_link">
+			<inertial>
+				<mass value="67"/>
+				<origin xyz="0 0 0"/>
+				<inertia ixx="1.0525" ixy="0" ixz="0"
+						 iyy="5.0235" iyz="0"
+						 izz="5.5835"/>
+			</inertial>
+			<visual>
+				<origin xyz="0 0 0" rpy="0 0 0" />
+				<geometry>
+					<mesh filename="package://dsr_description/meshes/mobile/base_link.dae" />
+				</geometry>
+			</visual>
+			<collision>
+            <origin xyz="0 0 0.008" rpy="0 0 0" />
+				<geometry>
+                <box size="${base_x_size} ${base_y_size} ${base_z_size}"/>
+				</geometry>
+			</collision>
+			<collision>
+            <origin xyz="0 0 ${base_z_size/6}" rpy="0 0 0" />
+				<geometry>
+                <box size="${base_x_size/6} ${base_y_size*1.65} ${base_z_size/3}"/>
+				</geometry>
+			</collision>
+		</link>
+		<!-- Base footprint is on the ground under the robot -->
+		<link name="base_footprint" />
+		<joint name="base_footprint_joint" type="fixed">
+			<origin xyz="0 0 ${wheel_vertical_offset - wheel_radius}" rpy="0 0 0" />
+			<parent link="base_link" />
+			<child link="base_footprint" />
+		</joint>
+		<!-- Interial link stores the robot's inertial information-->
+		<link name="inertial_link">
+			<inertial>
+				<mass value="67" />
+            <!-- <mass value="50" /> -->
+            <!-- <origin xyz="-0.00065 -0.085 0.062" />
+            <inertia ixx="0.6022" ixy="-0.02364" ixz="-0.1197" iyy="1.7386" iyz="-0.001544" izz="2.0296" /> -->
+            <origin xyz="0.0 0.0 0.0" />
+    		<inertia ixx="1.0525" ixy="0" ixz="0" iyy="5.0235" iyz="0" izz="5.5835" />
+			</inertial>
+		</link>
+		<joint name="inertial_joint" type="fixed">
+			<origin xyz="0 0 0" rpy="0 0 0" />
+			<parent link="base_link" />
+			<child link="inertial_link" />
+		</joint>
+		<!-- IMU Link is the standard mounting position for the UM6 IMU.-->
+		<!-- Can be modified with environment variables in /etc/ros/setup.bash -->
+		<link name="imu_link" />
+		<joint name="imu_joint" type="fixed">
+			<origin xyz="$(optenv MOBILE_IMU_XYZ 0.19 0 0.149)" rpy="$(optenv MOBILE_IMU_RPY 0 -1.5708 3.1416)" />
+			<parent link="base_link" />
+			<child link="imu_link" />
+		</joint>
+		<gazebo reference="imu_link">
+		</gazebo>
+		<!-- Mobile wheel macros -->
+    <xacro:scout_wheel_type1 wheel_prefix="front_right">
+        <origin xyz="${wheelbase/2} ${-track/2} ${wheel_vertical_offset}" rpy="0 0 0" />
+    </xacro:scout_wheel_type1>
+    <xacro:scout_wheel_type2 wheel_prefix="front_left">
+        <origin xyz="${wheelbase/2} ${track/2} ${wheel_vertical_offset}" rpy="0 0 0" />
+    </xacro:scout_wheel_type2>
+    <xacro:scout_wheel_type1 wheel_prefix="rear_left">
+        <origin xyz="${-wheelbase/2} ${track/2} ${wheel_vertical_offset}" rpy="0 0 0" />
+    </xacro:scout_wheel_type1>
+    <xacro:scout_wheel_type2 wheel_prefix="rear_right">
+        <origin xyz="${-wheelbase/2} ${-track/2} ${wheel_vertical_offset}" rpy="0 0 0" />
+    </xacro:scout_wheel_type2>
+
+		<gazebo reference="base_link">
+			<mu1>1.0</mu1>
+			<mu2>1.0</mu2>
+			<linearDamping>0.05</linearDamping>
+			<angularDamping>0.1</angularDamping>
+		</gazebo>
+		<!--<xacro:mobile_decorate />-->
+
+	<!-- CAMERA -->
+	<xacro:property name="camera_base_height_from_base_link" value="0.885" />
+	<xacro:property name="camera_height" value="0.1" />
+	<xacro:property name="camera_support_height" value="${camera_base_height_from_base_link - (wheel_radius - wheel_vertical_offset)}" />
+	<!-- <xacro:property name="camera_support_height" value="${camera_base_height_from_ground - (wheel_radius - wheel_vertical_offset)}" /> -->
+
+	<!-- Support CAMERA 
+	<link name="camera_support_link">
+		<visual>
+			<origin xyz="0 0 0" rpy="0 0 0" />
+			<geometry>
+				<mesh filename="package://dsr_description/meshes/camera_support.dae" scale="1 1 ${camera_support_height}"/>
+			</geometry>
+			<material name="support_material">
+				<color rgba="0.3 0.3 0.3 1.0" />
+			</material>
+		</visual>
+		<collision>
+			<origin xyz="0 0 0" rpy="0 0 0" />
+			<geometry>
+				<mesh filename="package://dsr_description/meshes/camera_support.dae" scale="1 1 ${camera_support_height}"/>
+			</geometry>
+		</collision>
+		<inertial>
+			<mass value="0.5" />
+			<origin xyz="0 0 ${-camera_support_height / 2}" rpy="0 0 0" />
+			<inertia ixx="0.001" ixy="0" ixz="0" iyy="0.001" iyz="0" izz="0.001" />
+		</inertial>
+	</link>
+
+	<gazebo reference="camera_support_joint">
+        <preserveFixedJoint>true</preserveFixedJoint>
+    </gazebo>
+
+	<joint name="camera_support_joint" type="fixed">
+		<parent link="base_link" />
+		<child link="camera_support_link" />
+		<origin xyz="-0.259 0.23 ${camera_support_height}" rpy="0 0 0" />
+	</joint>-->
+
+
+	<!--<link name="camera_link">
+		<visual>
+			<origin xyz="0 ${camera_height} 0" rpy="0 0 0" />
+			<geometry>
+				<mesh filename="package://dsr_description/meshes/insta360.dae" />
+			</geometry>
+			<material name="camera_material">
+				<color rgba="0.2 0.2 0.2 1.0" />
+			</material>
+		</visual>
+		<inertial>
+			<mass value="0.1" />
+			<origin xyz="0 0 0" rpy="0 0 0" />
+			<inertia ixx="0.000020833" ixy="0" ixz="0" iyy="0.000020833" iyz="0" izz="0.000020833" />
+		</inertial>
+	</link>
+	<gazebo reference="camera_joint">
+        <preserveFixedJoint>true</preserveFixedJoint>
+    </gazebo>
+	<joint name="camera_joint" type="fixed">
+		<parent link="camera_support_link" />
+		<child link="camera_link" />
+		<origin xyz="0 0 ${camera_height}" rpy="-1.57 0 -1.57" />
+	</joint>
+
+	<link name="camera_equi_optical_frame" />
+	
+	<joint name="camera_optical_joint" type="fixed">
+		<parent link="camera_link" />
+		<child link="camera_equi_optical_frame" />
+		<origin xyz="0 0 0" rpy="0 0 0" />
+	</joint>-->
+	
+	
+	<!-- END CAMERA -->
+	
+	
+	
+	
+		<link name="camera_link">
+		<visual>
+			<origin xyz="0 0 0" rpy="0 0 0" />
+			<geometry>
+				<mesh filename="package://dsr_description/meshes/insta360.dae" />
+			</geometry>
+			<material name="camera_material">
+				<color rgba="0.2 0.2 0.2 1.0" />
+			</material>
+		</visual>
+		<inertial>
+			<mass value="0.1" />
+			<origin xyz="0 0 0" rpy="0 0 0" />
+			<inertia ixx="0.000020833" ixy="0" ixz="0" iyy="0.000020833" iyz="0" izz="0.000020833" />
+		</inertial>
+	</link>
+	<gazebo reference="camera_joint">
+        <preserveFixedJoint>true</preserveFixedJoint>
+    </gazebo>
+	<joint name="camera_joint" type="fixed">
+		<parent link="link6" />
+		<child link="camera_link" />
+		<origin xyz="0.05 0 0" rpy="0 0 1.57" />
+	</joint>
+
+	<link name="camera_equi_optical_frame" />
+	
+	<joint name="camera_optical_joint" type="fixed">
+		<parent link="camera_link" />
+		<child link="camera_equi_optical_frame" />
+		<origin xyz="0 0 0" rpy="0 0 0" />
+	</joint>
+	
+	
+	
+
+
+	 <link name="top_plate_link">
+          <visual>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <!--<geometry>
+              <mesh filename="package://dsr_description/meshes/mobile/large_top_plate.dae" />
+            </geometry>-->
+          </visual>
+          <collision>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <!--<geometry>
+              <mesh filename="package://dsr_description/meshes/mobile/large_top_plate_collision.stl" />
+            </geometry>-->
+          </collision>
+          <collision>
+            <!-- Extra collision tag for widgets on top plate -->
+            <geometry>
+             <!-- <box size="0.32 0.41 0.09" rpy="0 0 0"/>-->
+            </geometry>
+          </collision>
+        </link>
+
+        <!-- Attach top plate -->
+        <joint name="top_plate_joint" type="fixed">
+          <parent link="base_link" />
+          <child link="top_plate_link"/>
+          <origin xyz="0.2 0 0.1" rpy="0 0 1.57"/>
+        </joint>
+		
+
+		<xacro:a0509 namespace="${namespace}" />
+		<joint name="dsr_arm_base" type="fixed">
+			<parent link="top_plate_link" />
+			<child link="base_0" />
+			<origin xyz="0 -0.05 0.0065" rpy="0.0 0.0 1.57" />
+		</joint>
+
+	</xacro:macro>
+</robot>

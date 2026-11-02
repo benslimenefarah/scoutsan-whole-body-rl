@@ -1,0 +1,164 @@
+\documentclass[11pt]{article}
+\usepackage[margin=2.2cm]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{array}
+\usepackage{listings}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{5pt}
+\newcommand{\code}[1]{\texttt{#1}}
+
+\title{\vspace{-1.5em}Base Driver --- Model Card\\[2pt]
+\large FLU-native mobile base: drive to a target and stop}
+\author{RL\_Scoutsan project}
+\date{2026-09-24}
+
+\begin{document}
+\maketitle
+\vspace{-1em}
+
+%% =====================================================================
+\section{Task and robot}
+A Scout~V2 differential-drive base must reach a target position on the flat arena and
+\emph{stop inside the success gate}. This is the first stage of the project lineage
+(\code{bearing\_angle\_FLU}); the model documented here is a \textbf{from-scratch retrain on the
+current physics}. One decision = one policy step; the episode ends on success, on a fall, or at
+the step cap. The agent script is \code{ScoutsanAgent\_4obs\_1} (the ``FLU-native'' variant): the
+Unity$\leftrightarrow$ROS handedness lives entirely inside the agent, so the policy operates in a
+single (FLU) convention and needs no sign flips at inference.
+
+%% =====================================================================
+\section{Observations (4)}
+Emitted in the robot-local FLU frame (forward-left-up), computed from the target in the base's
+local frame:
+\begin{center}
+\begin{tabular}{cll}
+\hline
+\# & Symbol & Definition (FLU, robot frame)\\
+\hline
+0 & \code{forwardDist} & $+z_{\text{local}}$ to target (FLU $x$, forward)\\
+1 & \code{lateralDist} & $-x_{\text{local}}$ to target (FLU $y$, left)\\
+2 & \code{linVelForward} & forward component of base linear velocity\\
+3 & \code{angVel} & $-\omega_y$, yaw rate (FLU CCW-positive)\\
+\hline
+\end{tabular}
+\end{center}
+Range and bearing are recovered from the first two:
+$d=\sqrt{\text{forwardDist}^2+\text{lateralDist}^2}$, \;
+$\beta=\operatorname{atan2}(\text{lateralDist},\,\text{forwardDist})$ \; ($\beta=0$ is dead ahead).
+
+%% =====================================================================
+\section{Actions (2) and drive}
+Two continuous actions in $[-1,1]$, in FLU convention:
+$a_0=v_{\text{ros}}$ (forward, m/s), $a_1=w_{\text{ros}}$ (yaw, rad/s, CCW-positive).
+They are converted to Unity ($v=v_{\text{ros}},\; w=-w_{\text{ros}}$) and mapped to the four
+wheels by differential drive with half-track $L/2$:
+\[
+v_{\text{left}}=\frac{v-w\,L/2}{r},\qquad
+v_{\text{right}}=\frac{v+w\,L/2}{r},\qquad
+r=0.16459\text{ m},\; L=0.58306\text{ m}.
+\]
+Left wheels take $-v_{\text{left}}$, right wheels $+v_{\text{right}}$ (URDF wheel-axis sign).
+
+%% =====================================================================
+\section{Reward}
+Per step, three shaping terms plus terminal bonuses:
+\[
+r_t \;=\; \underbrace{0.1\,(d_{t-1}-d_t)}_{\text{progress}}
+       \;-\; \underbrace{0.001}_{\text{time}}
+       \;-\; \underbrace{0.005\,\beta_t\,f(d_t)}_{\text{bearing}} .
+\]
+$\beta_t\ge0$ is the angle between the target direction and the \emph{nearer} robot axis (front if
+the target is ahead, rear if behind). The bearing term \emph{fades out} near the goal so it does
+not fight the stop:
+\[
+f(d)=\operatorname{clamp}_{[0,1]}\!\left(\frac{d-0.8}{1.8-0.8}\right)
+\quad(\text{full beyond }1.8\text{ m, off below }0.8\text{ m}).
+\]
+Terminal (override the step reward): $+1$ on success, $-1$ on fall.
+\begin{center}
+\begin{tabular}{lll}
+\hline
+Constant & Value & Meaning\\
+\hline
+\code{progressCoeff} & 0.1 & reward per metre of distance closed\\
+\code{timePenalty} & 0.001 & per-step cost (encourages promptness)\\
+\code{bearingCoeff} & 0.005 & alignment penalty weight\\
+\code{bearingFadeStart / End} & 1.8 / 0.8 m & fade band of the bearing term\\
+\hline
+\end{tabular}
+\end{center}
+
+%% =====================================================================
+\section{Gates and episode ends}
+\begin{center}
+\begin{tabular}{lll}
+\hline
+Event & Condition & Reward\\
+\hline
+SUCCESS & $d<\code{successRadius}=0.6$ m & $+1$, end episode\\
+FALL & $y<\code{fallY}=-1.0$ m & $-1$, end episode\\
+TIMEOUT & step cap reached & shaping only\\
+\hline
+\end{tabular}
+\end{center}
+Spawn: the target is placed uniformly in a $\pm5.0$~m square around the base start, re-sampled
+until at least \code{minSpawnDistance}$=1.5$~m away (target can appear behind the robot).
+
+%% =====================================================================
+\section{Model and training configuration}
+\begin{center}
+\begin{tabular}{ll}
+\hline
+Item & Value\\
+\hline
+Algorithm & PPO (Stable-Baselines3 2.3.2), \code{MlpPolicy} (64$\times$64, tanh)\\
+Init & from scratch (fresh weights on today's physics)\\
+learning rate & $3\times10^{-4}$\\
+\code{n\_steps} / \code{batch\_size} & 2048 / 64\\
+\code{gamma} / \code{gae\_lambda} / \code{clip\_range} & 0.99 / 0.95 / 0.2\\
+\code{ent\_coef} & 0.005\\
+device & CPU (tiny 4/2 net; keeps both GPUs free for other runs)\\
+obs / act & 4 / 2 (continuous)\\
+\hline
+\end{tabular}
+\end{center}
+
+%% =====================================================================
+\section{Evaluation (deterministic, gate 0.6 m)}
+Produced by \code{eval\_base\_flu.py} (\code{deterministic=True}) and stored in
+\code{base\_model/base\_eval.json} (summary) and \code{base\_model/base\_eval\_steps.csv} (per-step
+trace). ``Decisions to reach'' counts policy steps from spawn until the base first enters the gate;
+since the episode ends on that event, it coincides with the episode length.
+%% <<RESULTS_BEGIN>> (auto-generated by build_base_card.py from base_eval.json -- do not hand-edit)
+\begin{center}
+\begin{tabular}{ll}
+\hline
+Metric & Value\\
+\hline
+Episodes & 6\\
+Success rate & 6/6 = 100\%\\
+Mean decisions to reach gate & 56.7 (median 48.5; range 41--97)\\
+Mean min distance (m) & 0.5286\\
+Mean final distance (m) & 0.5286\\
+End reasons (SUCCESS / FALL / TIMEOUT) & 6 / 0 / 0\\
+\hline
+\end{tabular}
+\end{center}
+No falls or timeouts unless the table says otherwise. Evaluated on \code{ppo\_bearing\_angle\_FLU\_new\_interrupted.zip} (2026-09-24).
+%% <<RESULTS_END>>
+
+%% =====================================================================
+\section*{Reproducibility}
+\begin{tabular}{ll}
+Model dir / prefix & \code{python/model\_bearing\_angle\_FLU\_new} / \code{ppo\_bearing\_angle\_FLU\_new}\\
+Checkpoint & \code{\_interrupted.zip} (freshest weights at graceful stop)\\
+Scene & \code{Assets/Scenes/base.unity} (Behavior=Default, Space Size 4, Cont. Actions 2)\\
+Trainer & \code{eval\_base\_flu.py} adjacent launcher \code{train\_base\_flu.py}\\
+Env & \code{unity-rl-gpu} (SB3 2.3.2, mlagents\_envs 0.30.0), Editor port 5004\\
+Eval command & \code{ARM\_TIME\_SCALE=1 python eval\_base\_flu.py}\\
+Video & FrameSequenceRecorder on Main Camera (1920$\times$1080, 30 fps) $\to$ \code{make\_video.sh}\\
+Date & 2026-09-24\\
+\end{tabular}
+
+\end{document}

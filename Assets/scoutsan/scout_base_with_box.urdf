@@ -1,0 +1,240 @@
+<?xml version="1.0" ?>
+<!-- ====================================================================== -->
+<!-- Same working base as before, plus everything from the full URDF that   -->
+<!-- ISN'T the arm or the gripper. All added links are fixed-joint, so      -->
+<!-- the wheel/cmd_vel pipeline keeps working unchanged.                    -->
+<!-- Camera is reparented from base_0 (arm root, not present here) to       -->
+<!-- base_link directly.                                                    -->
+<!-- ====================================================================== -->
+<robot name="scout_base">
+
+  <!-- ============================ Materials ============================ -->
+  <material name="black"><color rgba="0.0 0.0 0.0 1.0"/></material>
+  <material name="white"><color rgba="1.0 1.0 1.0 1.0"/></material>
+  <material name="blue_custom"><color rgba="0.33 0.49 0.58 1.0"/></material>
+  <material name="camera_material"><color rgba="0.2 0.2 0.2 1.0"/></material>
+
+  <!-- ============================ Base ================================ -->
+  <link name="base_link">
+    <inertial>
+      <mass value="1.0"/>
+      <origin xyz="0 0 0"/>
+      <inertia ixx="0.01" ixy="0" ixz="0" iyy="0.01" iyz="0" izz="0.01"/>
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="package://scout_description/meshes/base_link.dae"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0.008"/>
+      <geometry>
+        <box size="0.925 0.38 0.21"/>
+      </geometry>
+    </collision>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0.035"/>
+      <geometry>
+        <box size="0.15416666666666667 0.627 0.07"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <link name="base_footprint"/>
+  <joint name="base_footprint_joint" type="fixed">
+    <origin rpy="0 0 0" xyz="0 0 -0.23479"/>
+    <parent link="base_link"/>
+    <child link="base_footprint"/>
+  </joint>
+
+  <link name="inertial_link">
+    <inertial>
+      <mass value="40"/>
+      <origin xyz="0.0 0.0 0.0"/>
+      <inertia ixx="2.288641" ixy="0" ixz="0"
+               iyy="5.103976" iyz="0"
+               izz="3.431465"/>
+    </inertial>
+  </link>
+  <joint name="inertial_joint" type="fixed">
+    <origin rpy="0 0 0" xyz="0 0 0"/>
+    <parent link="base_link"/>
+    <child link="inertial_link"/>
+  </joint>
+
+  <!-- ============================ Wheels ============================== -->
+  <link name="front_right_wheel_link">
+    <inertial>
+      <mass value="3"/>
+      <origin xyz="0 0 0"/>
+      <inertia ixx="0.7171" ixy="0" ixz="0" iyy="0.1361" iyz="0" izz="0.7171"/>
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="package://scout_description/meshes/wheel_type1.dae"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin rpy="1.570795 0 0" xyz="0 0 0"/>
+      <geometry>
+        <cylinder length="0.11653" radius="0.16459"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="front_right_wheel" type="continuous">
+    <parent link="base_link"/>
+    <child link="front_right_wheel_link"/>
+    <origin rpy="3.14 0 0" xyz="0.249 -0.29153 -0.0702"/>
+    <axis rpy="0 0 0" xyz="0 -1 0"/>
+  </joint>
+
+  <link name="front_left_wheel_link">
+    <inertial>
+      <mass value="3"/>
+      <origin xyz="0 0 0"/>
+      <inertia ixx="0.7171" ixy="0" ixz="0" iyy="0.1361" iyz="0" izz="0.7171"/>
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="package://scout_description/meshes/wheel_type2.dae"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin rpy="1.570795 0 0" xyz="0 0 0"/>
+      <geometry>
+        <cylinder length="0.11653" radius="0.16459"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="front_left_wheel" type="continuous">
+    <parent link="base_link"/>
+    <child link="front_left_wheel_link"/>
+    <origin rpy="0 0 0" xyz="0.249 0.29153 -0.0702"/>
+    <axis rpy="0 0 0" xyz="0 -1 0"/>
+  </joint>
+
+  <link name="rear_left_wheel_link">
+    <inertial>
+      <mass value="3"/>
+      <origin xyz="0 0 0"/>
+      <inertia ixx="0.7171" ixy="0" ixz="0" iyy="0.1361" iyz="0" izz="0.7171"/>
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="package://scout_description/meshes/wheel_type1.dae"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin rpy="1.570795 0 0" xyz="0 0 0"/>
+      <geometry>
+        <cylinder length="0.11653" radius="0.16459"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="rear_left_wheel" type="continuous">
+    <parent link="base_link"/>
+    <child link="rear_left_wheel_link"/>
+    <origin rpy="0 0 0" xyz="-0.249 0.29153 -0.0702"/>
+    <axis rpy="0 0 0" xyz="0 -1 0"/>
+  </joint>
+
+  <link name="rear_right_wheel_link">
+    <inertial>
+      <mass value="3"/>
+      <origin xyz="0 0 0"/>
+      <inertia ixx="0.7171" ixy="0" ixz="0" iyy="0.1361" iyz="0" izz="0.7171"/>
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="package://scout_description/meshes/wheel_type2.dae"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin rpy="1.570795 0 0" xyz="0 0 0"/>
+      <geometry>
+        <cylinder length="0.11653" radius="0.16459"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="rear_right_wheel" type="continuous">
+    <parent link="base_link"/>
+    <child link="rear_right_wheel_link"/>
+    <origin rpy="3.14 0 0" xyz="-0.249 -0.29153 -0.0702"/>
+    <axis rpy="0 0 0" xyz="0 -1 0"/>
+  </joint>
+
+  <!-- ====================== Cosmetic: scoutsan box ===================== -->
+  <link name="scoutsan_box">
+    <inertial>
+      <mass value="0.5"/>
+      <origin xyz="0 0 0"/>
+      <inertia ixx="0.001" ixy="0" ixz="0" iyy="0.001" iyz="0" izz="0.001"/>
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="package://scoutsan_description/meshes/scoutsan_box.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+      <material name="blue_custom"/>
+    </visual>
+  </link>
+  <joint name="scoutsan_box_on_scout" type="fixed">
+    <origin rpy="0 0 -1.5707963267948966" xyz="-0.500 0.225 0.115"/>
+    <parent link="base_link"/>
+    <child link="scoutsan_box"/>
+  </joint>
+  <link name="scoutsan_box_top"/>
+  <joint name="scoutsan_box_top_joint" type="fixed">
+    <origin rpy="0 0 1.5707963267948966" xyz="0.25 0.300 0.25"/>
+    <parent link="scoutsan_box"/>
+    <child link="scoutsan_box_top"/>
+  </joint>
+
+  
+
+  <!-- ====================== Cosmetic: camera =========================== -->
+  <!-- In the full URDF the camera is parented to base_0 (arm root, not    -->
+  <!-- present here). Reparented to base_link with offsets adjusted to     -->
+  <!-- match the original world position (base_0 sits at base_link +       -->
+  <!-- xyz "0.33 0 0.115" with yaw pi). After re-export of pi to numeric,  -->
+  <!-- the equivalent transform from base_link is:                          -->
+  <!--   xyz = base_0_offset + R_z(pi) * camera_offset                      -->
+  <!--       = (0.33, 0, 0.115) + (-0.524239, 0.43609, 0.649744)            -->
+  <!--       = (-0.194239, 0.43609, 0.764744)                               -->
+  <!-- rpy: yaw'd by pi as well; keeping the original orientation values   -->
+  <!-- since the camera will be positioned cosmetically anyway.            -->
+  <link name="camera_link">
+    <inertial>
+      <mass value="0.1"/>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <inertia ixx="0.000020833" ixy="0" ixz="0"
+               iyy="0.000020833" iyz="0"
+               izz="0.000020833"/>
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0.1 0"/>
+      <geometry>
+        <mesh filename="package://scoutsan_description/meshes/insta360.dae"/>
+      </geometry>
+      <material name="camera_material"/>
+    </visual>
+  </link>
+  <joint name="camera_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="camera_link"/>
+    <origin rpy="4.721622653589793 -0.0735526 1.609582653589793"
+            xyz="-0.194239 0.43609 0.764744"/>
+  </joint>
+  <link name="camera_equi_optical_frame"/>
+  <joint name="camera_optical_joint" type="fixed">
+    <parent link="camera_link"/>
+    <child link="camera_equi_optical_frame"/>
+    <origin rpy="0 0 0" xyz="0 0 0"/>
+  </joint>
+
+</robot>

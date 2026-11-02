@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="a0509mobile" >
+
+  <xacro:arg name="color"   default="blue"/>
+  <xacro:arg name="gripper" default="none"/>
+
+
+  <xacro:property name="cr" value="$(arg color)"/>
+  <xacro:property name="gr" value="$(arg gripper)"/>
+
+  <xacro:if value="${cr == 'white'}">
+    <xacro:include filename="$(find dsr_description)/xacro/macro.a0509mobile.white.xacro" />
+  </xacro:if>
+  <xacro:if value="${cr == 'blue'}">
+    <xacro:include filename="$(find dsr_description)/xacro/macro.a0509mobile.blue.xacro" />
+  </xacro:if>
+  <xacro:if value="${gr == 'robotiq_2f'}">
+     <xacro:include filename="$(find dsr_description)/xacro/robotiq_2f.urdf.xacro" />
+  </xacro:if>
+  <xacro:if value="${gr == 'dh_pgc140'}">
+     <xacro:include filename="$(find dh_pgc140_urdf)/urdf/dh_pgc140.xacro" />
+  </xacro:if>
+
+  <!--<xacro:arg name="namespace" default=""/>-->
+  <xacro:a0509mobile namespace="$(arg namespace)"/>
+  
+  <xacro:if value="${gr == 'dh_pgc140'}">
+    <xacro:dh_pgc140_gripper parent="link6">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+    </xacro:dh_pgc140_gripper>
+  </xacro:if>
+
+</robot>

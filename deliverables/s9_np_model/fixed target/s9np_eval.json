@@ -1,0 +1,71 @@
+{
+  "summary": {
+    "model": "/home/nyctophilia/UnityProjects/RL_Scoutsan/scoutsan_Baseline/models/model_scoutsan_s9_np/checkpoints/ppo_scoutsan_s9_np_5750000_steps.zip",
+    "date": "2026-09-24",
+    "gate_pos_m": 0.03,
+    "gate_orient_rad": 0.05,
+    "episodes": 5,
+    "successes": 5,
+    "success_rate": 1.0,
+    "mean_decisions_to_reach": 26.2,
+    "mean_min_d": 0.0258,
+    "mean_min_phi_rad": 0.0236,
+    "end_reasons": {
+      "SUCCESS": 5,
+      "FAIL": 0,
+      "TIMEOUT": 0
+    }
+  },
+  "episodes": [
+    {
+      "episode": 1,
+      "steps": 27,
+      "end": "SUCCESS",
+      "reached": true,
+      "decisions_to_reach": 27,
+      "min_d": 0.0281,
+      "min_phi_rad": 0.0192,
+      "min_baseD": 1.0418
+    },
+    {
+      "episode": 2,
+      "steps": 26,
+      "end": "SUCCESS",
+      "reached": true,
+      "decisions_to_reach": 26,
+      "min_d": 0.0257,
+      "min_phi_rad": 0.0367,
+      "min_baseD": 1.0507
+    },
+    {
+      "episode": 3,
+      "steps": 26,
+      "end": "SUCCESS",
+      "reached": true,
+      "decisions_to_reach": 26,
+      "min_d": 0.026,
+      "min_phi_rad": 0.0149,
+      "min_baseD": 1.0505
+    },
+    {
+      "episode": 4,
+      "steps": 26,
+      "end": "SUCCESS",
+      "reached": true,
+      "decisions_to_reach": 26,
+      "min_d": 0.0258,
+      "min_phi_rad": 0.0225,
+      "min_baseD": 1.0499
+    },
+    {
+      "episode": 5,
+      "steps": 26,
+      "end": "SUCCESS",
+      "reached": true,
+      "decisions_to_reach": 26,
+      "min_d": 0.0236,
+      "min_phi_rad": 0.0248,
+      "min_baseD": 1.0496
+    }
+  ]
+}

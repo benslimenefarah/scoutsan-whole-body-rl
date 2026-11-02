@@ -1,0 +1,164 @@
+<?xml version="1.0"?>
+
+<robot name="scoutsan" 
+    xmlns:xacro="http://ros.org/wiki/xacro">
+
+    <xacro:arg name="robot_namespace" default="/" /> 
+
+    <!--<xacro:include filename="$(find realsense2_description)/urdf/_d435.urdf.xacro" />-->
+    <xacro:include filename="$(find scout_description)/urdf/scout_wheel_type1.xacro" />
+    <xacro:include filename="$(find scout_description)/urdf/scout_wheel_type2.xacro" />
+
+    <xacro:include filename="$(find dsr_description)/xacro/macro.a0509.blue.xacro" />
+
+    <xacro:include filename="$(find scoutsan_description)/urdf/scoutsan_box.xacro" />
+
+    <xacro:include filename="$(find scoutsan_description)/urdf/scoutsan_gripper.xacro" />
+    <!-- <xacro:include filename="$(find scoutsan_description)/urdf/scoutsan_box.xacro" /> -->
+    
+    <!-- Import sensors from robotnik -->
+    <xacro:include filename="$(find robotnik_sensors)/urdf/all_sensors.urdf.xacro"/>
+
+
+    <!-- Variables -->
+    <xacro:property name="M_PI" value="3.14159"/>
+
+    <!-- Vehicle Geometries -->
+    <xacro:property name="base_x_size" value="0.9250000" />
+    <xacro:property name="base_y_size" value="0.380000" />
+    <xacro:property name="base_z_size" value="0.210000" />
+
+    <xacro:property name="wheelbase" value="0.498" />
+    <xacro:property name="track" value="0.58306" />
+    <xacro:property name="wheel_vertical_offset" value="-0.0702" />
+
+    <xacro:property name="wheel_length" value="1.1653e-01" />
+    <xacro:property name="wheel_radius" value="1.6459e-01" />
+
+    <!-- Base link -->
+    <link name="base_link">
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="package://scout_description/meshes/base_link.dae" />
+            </geometry>
+        </visual>
+        <collision>
+            <origin xyz="0 0 0.008" rpy="0 0 0" />
+            <geometry>
+                <box size="${base_x_size} ${base_y_size} ${base_z_size}"/>
+            </geometry>
+        </collision>
+        <collision>
+            <origin xyz="0 0 ${base_z_size/6}" rpy="0 0 0" />
+            <geometry>
+                <box size="${base_x_size/6} ${base_y_size*1.65} ${base_z_size/3}"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <link name="base_footprint"/>
+
+    <joint name="base_footprint_joint" type="fixed">
+        <origin xyz="0 0 ${wheel_vertical_offset - wheel_radius}" rpy="0 0 0" />
+        <parent link="base_link" />
+        <child link="base_footprint" />
+    </joint>
+
+    <link name="inertial_link">
+        <inertial>
+            <mass value="40" />
+            <origin xyz="0.0 0.0 0.0" />
+            <inertia ixx="2.288641" ixy="0" ixz="0" iyy="5.103976" iyz="0" izz="3.431465" />
+        </inertial>
+    </link>
+
+    <joint name="inertial_joint" type="fixed">
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <parent link="base_link" />
+        <child link="inertial_link" />
+    </joint>
+
+    <!-- Scout wheel macros -->
+    <!-- wheel labeled from 0 to 3, conter-clockwise, starting from front right wheel -->
+    <!-- motor 1 and 2 (left side) are mechanically installed in a reversed direction -->
+    <xacro:scout_wheel_type1 wheel_prefix="front_right">
+        <origin xyz="${wheelbase/2} ${-track/2} ${wheel_vertical_offset}" rpy="3.14 0 0" />
+    </xacro:scout_wheel_type1>
+    <xacro:scout_wheel_type2 wheel_prefix="front_left">
+        <origin xyz="${wheelbase/2} ${track/2} ${wheel_vertical_offset}" rpy="0 0 0" />
+    </xacro:scout_wheel_type2>
+    <xacro:scout_wheel_type1 wheel_prefix="rear_left">
+        <origin xyz="${-wheelbase/2} ${track/2} ${wheel_vertical_offset}" rpy="0 0 0" />
+    </xacro:scout_wheel_type1>
+    <xacro:scout_wheel_type2 wheel_prefix="rear_right">
+        <origin xyz="${-wheelbase/2} ${-track/2} ${wheel_vertical_offset}" rpy="3.14 0 0" />
+    </xacro:scout_wheel_type2>
+
+    <!-- fixing doosan -->
+    <xacro:a0509 namespace="/"/>
+    <joint name="doosan_on_scout" type="fixed">
+        <origin xyz="0.33 0 0.115" rpy="0 0 ${pi}"/>
+        <parent link="base_link"/>
+        <child link="base_0"/>
+    </joint>
+
+    <!-- fixing scoutsan box -->
+    <xacro:scoutsan_box />
+    <joint name="scoutsan_box_on_scout" type="fixed">
+        <origin xyz="-0.500 0.225 0.115" rpy="0 0 ${-pi/2.0}"/>
+        <parent link="base_link"/>
+        <child link="scoutsan_box"/>
+    </joint>
+
+    <!-- fixing scoutsan gripeer -->
+    <xacro:scoutsan_gripper />
+    <joint name="scoutsan_gripper_on_doosan" type="fixed">
+        <origin xyz="0.0 0.0 0.0" rpy="${pi} 0 ${pi}"/>
+        <parent link="link6"/>
+        <child link="gripper_link"/>
+    </joint>
+
+    <!-- Add Velodyne VLP16 -->
+    <xacro:sensor_velodyne_vlp16 prefix="velodyne" parent="base_link">
+	<origin xyz="-0.23 0.0 0.40" rpy="0 0 0.0"/>
+    </xacro:sensor_velodyne_vlp16>	
+
+    <!-- Insta360 Camera -->
+    <link name="camera_link">
+        <visual>
+            <origin xyz="0 0.1 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="package://scoutsan_description/meshes/insta360.dae" />
+            </geometry>
+            <material name="camera_material">
+                <color rgba="0.2 0.2 0.2 1.0" />
+            </material>
+        </visual>
+        <inertial>
+            <mass value="0.1" />
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <inertia ixx="0.000020833" ixy="0" ixz="0" iyy="0.000020833" iyz="0" izz="0.000020833" />
+        </inertial>
+    </link>
+
+    <joint name="camera_joint" type="fixed">
+        <parent link="base_0"/>
+        <child link="camera_link"/>
+        <origin xyz="0.524239 -0.43609 0.649744" rpy="${1.58003 + pi} -0.0735526 ${-1.53201 + pi}"/>
+    </joint>
+
+    <link name="camera_equi_optical_frame" />
+    
+    <joint name="camera_optical_joint" type="fixed">
+        <parent link="camera_link" />
+        <child link="camera_equi_optical_frame" />
+        <origin xyz="0 0 0" rpy="0 0 0" />
+    </joint>
+
+   <!--xacro:sensor_d435 name="camera" parent="link6">
+        <origin xyz="0.09 -0.04 0.08" rpy="0 -${pi/2.0} ${pi}"/>
+   </xacro:sensor_d435-->
+
+</robot>
+

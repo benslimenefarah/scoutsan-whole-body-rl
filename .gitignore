@@ -1,0 +1,62 @@
+# Unity regenerates these; never commit them
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Uu]ser[Ss]ettings/
+[Mm]emoryCaptures/
+[Rr]ecordings/
+sysinfo.txt
+
+# Headless players, rebuilt from the Editor (see README > Training)
+/s9/
+/s9r/
+/s9_np/
+/s9_curr/
+/s9_tarc/
+/build_*/
+
+# IDE / project files Unity regenerates
+.vs/
+.idea/
+.vscode/
+*.csproj
+*.unityproj
+*.sln
+*.suo
+*.user
+*.userprefs
+*.pidb
+*.tmp
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# Training artefacts: TensorBoard logs and intermediate checkpoints.
+# The final checkpoint of each reported model IS committed (see models/).
+**/tb/
+**/tb_*/
+**/checkpoints/*_steps.zip
+**/unity_logs/
+**/graphs/
+*.csv.meta
+
+# LaTeX byproducts
+*.aux
+*.log
+*.toc
+*.out
+*.bbl
+*.blg
+*.bcf
+*.run.xml
+*.synctex.gz
+
+.DS_Store
+Thumbs.db

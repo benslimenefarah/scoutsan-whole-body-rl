@@ -1,0 +1,26 @@
+<launch>
+  <!-- Load the URDF with gripper into the parameter server -->
+  <param name="robot_description" 
+         command="$(find xacro)/xacro '$(find dsr_description)/xacro/a0509mobile.urdf.xacro' namespace:=dsr01" />
+  
+  <!-- GUI to control joint positions -->
+  <node name="joint_state_publisher_gui" 
+        pkg="joint_state_publisher_gui" 
+        type="joint_state_publisher_gui">
+    <remap from="/joint_states" to="/dsr01/joint_states" />
+  </node>
+  
+  <!-- Publish TF transformations -->
+  <node name="robot_state_publisher" 
+        pkg="robot_state_publisher" 
+        type="robot_state_publisher">
+    <remap from="/joint_states" to="/dsr01/joint_states" />
+  </node>
+  
+  <!-- Start RViz with a configuration -->
+  <node name="rviz" 
+        pkg="rviz" 
+        type="rviz" 
+        args="-d $(find dsr_description)/rviz/default.rviz" 
+        required="false" />
+</launch>

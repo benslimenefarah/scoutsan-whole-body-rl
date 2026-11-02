@@ -1,0 +1,101 @@
+{
+  "experiment": "s9_tarc",
+  "lambda_desc": "s9 direct-velocity, T-arc",
+  "weight_floor_watch": null,
+  "checkpoint": "ppo_scoutsan_s9_tarc.zip",
+  "checkpoint_steps": null,
+  "model_prefix": "ppo_scoutsan_s9_tarc",
+  "gate": {
+    "d": 0.02,
+    "phi": 0.02,
+    "hold_steps": 10
+  },
+  "linearc_count": 5,
+  "date": "2026-09-25",
+  "host": "Farah-Alienware-Aurora-R12",
+  "targets": [
+    {
+      "idx": 0,
+      "phase": "arc",
+      "spawn_dist": 1.735,
+      "spawn_az": -156.6,
+      "min_d": 0.0179,
+      "min_phi_deg": 0.17,
+      "reached": true,
+      "steps_to_gate": 89,
+      "max_hold": 2,
+      "held": false,
+      "steps": 90,
+      "final_d": 0.0188,
+      "final_phi_deg": 0.97
+    },
+    {
+      "idx": 1,
+      "phase": "arc",
+      "spawn_dist": 1.711,
+      "spawn_az": 180.0,
+      "min_d": 0.0108,
+      "min_phi_deg": 0.41,
+      "reached": true,
+      "steps_to_gate": 30,
+      "max_hold": 2,
+      "held": false,
+      "steps": 31,
+      "final_d": 0.0136,
+      "final_phi_deg": 0.41
+    },
+    {
+      "idx": 2,
+      "phase": "arc",
+      "spawn_dist": 1.732,
+      "spawn_az": 156.6,
+      "min_d": 0.01,
+      "min_phi_deg": 0.58,
+      "reached": true,
+      "steps_to_gate": 217,
+      "max_hold": 2,
+      "held": false,
+      "steps": 218,
+      "final_d": 0.0116,
+      "final_phi_deg": 1.08
+    },
+    {
+      "idx": 3,
+      "phase": "arc",
+      "spawn_dist": 1.711,
+      "spawn_az": 180.0,
+      "min_d": 0.0051,
+      "min_phi_deg": 1.13,
+      "reached": true,
+      "steps_to_gate": 30,
+      "max_hold": 2,
+      "held": false,
+      "steps": 31,
+      "final_d": 0.0051,
+      "final_phi_deg": 1.13
+    },
+    {
+      "idx": 4,
+      "phase": "arc",
+      "spawn_dist": 1.732,
+      "spawn_az": -156.6,
+      "min_d": 0.0192,
+      "min_phi_deg": 0.1,
+      "reached": true,
+      "steps_to_gate": 94,
+      "max_hold": 2,
+      "held": false,
+      "steps": 95,
+      "final_d": 0.0192,
+      "final_phi_deg": 0.71
+    }
+  ],
+  "summary": {
+    "n_targets": 5,
+    "reached_rate": 1.0,
+    "held_rate": 0.0,
+    "mean_min_d": 0.0126,
+    "mean_min_phi_deg": 0.48,
+    "mean_steps_to_gate": 92.0
+  }
+}

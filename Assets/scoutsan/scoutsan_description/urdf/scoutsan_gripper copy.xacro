@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="scoutsan_gripper" >
+
+<!-- this color take effect only on rviz -->
+    <xacro:macro name="scoutsan_gripper">
+      <!-- <material name="black_custom">
+        <color rgba="0.33 0.49 0.58 1.0"/> 
+    </material> -->
+    
+    <!--  + Reference frame: at the middle (4mm) -->
+  <link name="gripper_link">
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="package://scoutsan_description/meshes/gripper_pgc_300.stl" scale="0.001 0.001 0.001"/>
+            </geometry>
+            <material name="black"/> <!-- rviz will use this color -->
+        </visual>
+    </link>
+    </xacro:macro>
+
+</robot>

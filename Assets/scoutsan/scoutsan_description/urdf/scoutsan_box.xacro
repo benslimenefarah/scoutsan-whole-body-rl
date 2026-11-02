@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="scoutsan_box" >
+
+<!-- this color take effect only on rviz -->
+    <xacro:macro name="scoutsan_box">
+      <material name="blue_custom">
+        <color rgba="0.33 0.49 0.58 1.0"/> <!-- rviz blue color -->
+    </material>
+    
+    <!--  + Reference frame: at the middle (4mm) -->
+  <link name="scoutsan_box">
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <mesh filename="package://scoutsan_description/meshes/scoutsan_box.stl" scale="0.001 0.001 0.001"/>
+            </geometry>
+            <material name="blue_custom"/> <!-- rviz will use this color -->
+        </visual>
+    </link>
+
+    <link name="scoutsan_box_top"></link>
+    <joint name="scoutsan_box_top" type="fixed">
+        <origin xyz="0.25 0.300 0.25" rpy="0 0 ${pi/2.0}"/>
+        <parent link="scoutsan_box"/>
+        <child link="scoutsan_box_top"/>
+    </joint>
+    </xacro:macro>
+
+</robot>
